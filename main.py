@@ -30,23 +30,10 @@ class Manager:
             return 'Wpisałeś nieprawidłową wartość.Spróbuj jeszcze raz!'
 
     def execute(self, zapytanie):
-        # wlasciwa czesc programu
-        while True:
-        # pytania w petli do uzytkownika
-            print("1.Wpisz 'saldo' aby dodać lub odjąć kwotę z konta"  
-                  "\n2.Wpisz 'sprzedaz' aby wybrać SPRZEDAŻ"
-                  "\n3.Wpisz 'zakup' aby wybrać ZAKUP"
-                  "\n4.Wpisz 'konto' aby wyświetlić stan konta"
-                  "\n5.Wpisz 'lista' aby wyświetlić pełny stan magazynu"
-                  "\n6.Wpisz 'magazyn' aby wyświetlić ilość konkretnego produktu na stanie"
-                  "\n7.Wpisz 'przeglad' aby wyświetlić historię zmian"
-                  "\n8.Wpisz 'koniec' aby zakończyć działanie programu")
-
-            zapytanie = input("Co wybierasz?: ")
         # jezeli podanej wartosci nie ma na liscie warunkow program pyta uzytkownika jeszcze raz co chce zrobic
             if zapytanie not in self.warunki :
                 print('Wpisałeś nieprawidłową wartość.Spróbuj jeszcze raz!')
-                continue
+
         # dodanie i odjecie przez uzytkownika kwoty z konta
             elif zapytanie == 'saldo':
                 while True :
@@ -140,11 +127,6 @@ class Manager:
                         print(self.historia_akcji[liczba_od - 1 :liczba_do])
                         break
 
-        # uzytkownik wpisujac koniec, konczy dzialanie programu
-            elif zapytanie == 'koniec' :
-                self.save_to_file()
-                break
-
 # funkcja odpowiadajaca za zapis do pliku
     def save_to_file(self):
         with open(self.filename, 'w') as f:
@@ -156,18 +138,27 @@ class Manager:
             for k in self.historia_akcji:
                 f.write(k + '&&\n')
 
-if __name__ == "__main__":
-    print("1.Wpisz 'saldo' aby dodać lub odjąć kwotę z konta"
-          "\n2.Wpisz 'sprzedaz' aby wybrać SPRZEDAŻ"
-          "\n3.Wpisz 'zakup' aby wybrać ZAKUP"
-          "\n4.Wpisz 'konto' aby wyświetlić stan konta"
-          "\n5.Wpisz 'lista' aby wyświetlić pełny stan magazynu"
-          "\n6.Wpisz 'magazyn' aby wyświetlić ilość konkretnego produktu na stanie"
-          "\n7.Wpisz 'przeglad' aby wyświetlić historię zmian"
-          "\n8.Wpisz 'koniec' aby zakończyć działanie programu")
-    inquiry = input("Co wybierasz? : ")  # Dodano krótką instrukcję dla użytkownika
-    manager = Manager()
-    manager.assign(inquiry)
 
+# wlasciwa czesc programu
+if __name__ == "__main__":
+    manager = Manager()
+    while True:
+        print("1.Wpisz 'saldo' aby dodać lub odjąć kwotę z konta"
+              "\n2.Wpisz 'sprzedaz' aby wybrać SPRZEDAŻ"
+              "\n3.Wpisz 'zakup' aby wybrać ZAKUP"
+              "\n4.Wpisz 'konto' aby wyświetlić stan konta"
+              "\n5.Wpisz 'lista' aby wyświetlić pełny stan magazynu"
+              "\n6.Wpisz 'magazyn' aby wyświetlić ilość konkretnego produktu na stanie"
+              "\n7.Wpisz 'przeglad' aby wyświetlić historię zmian"
+              "\n8.Wpisz 'koniec' aby zakończyć działanie programu")
+
+        inquiry = input("Co wybierasz? : ")
+
+        # Jeżeli użytkownik wpisuje "koniec", program kończy działanie
+        if inquiry == "koniec":
+            manager.save_to_file()
+            break
+
+        manager.assign(inquiry)
 
 
