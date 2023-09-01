@@ -1,4 +1,4 @@
-# zainicjowanie klasy menager
+# zainicjowanie klasy manager
 class Manager:
     def __init__(self):
         self.warunki = ['saldo', 'sprzedaz', 'zakup', 'konto', 'lista', 'magazyn', 'przeglad', 'koniec']
@@ -7,10 +7,29 @@ class Manager:
         self.akcja = 0
         self.stan_konta = 1000
         self.filename = 'history.txt'
-        self._load_data()
+        self.actions = {self.load_data(),
+                        self.balance_request(),
+                        self.to_sale(),
+                        self.to_purchase(),
+                        self.show_account_balance(),
+                        self.show_list_of_products(),
+                        self.show_product(),
+                        self.show_action_history()
+                        self.load_data(),
+                        self.save_to_file()}
 
-# funkcja odpowiadajaca za odczyt danych z pliku tekstowego i przypisywanie wartosci do zmiennych
-    def _load_data(self):
+    def assign(self, name):
+        def decorate(cb):
+            self.actions[name] = cb
+            return decorate
+
+    def execute(self, name):
+        if name not in self.actions:
+            print('Błąd')
+        else:
+            self.actions[name](self)
+
+    def load_data(self):
         with open(self.filename, 'r') as f:
             for line in f:
                 if 'Stan konta' in line:
@@ -23,111 +42,6 @@ class Manager:
                     line = line.strip().replace('&&', '')
                     self.historia_akcji.append(line)
 
-    def assign(self, inquiry):
-        if inquiry in self.warunki :
-            return self.execute(inquiry)
-        else:
-            return 'Wpisałeś nieprawidłową wartość.Spróbuj jeszcze raz!'
-
-    def execute(self, zapytanie):
-        # jezeli podanej wartosci nie ma na liscie warunkow program pyta uzytkownika jeszcze raz co chce zrobic
-            if zapytanie not in self.warunki :
-                print('Wpisałeś nieprawidłową wartość.Spróbuj jeszcze raz!')
-
-        # dodanie i odjecie przez uzytkownika kwoty z konta
-            elif zapytanie == 'saldo':
-                while True :
-                    zapytanie_o_saldo = int(input('Wybierz 1 jeżeli chcesz dodać kwotę. Wybierz 2 jeżeli chcesz odjąć kwotę: '))
-                    if zapytanie_o_saldo == 1 :
-                        saldo = float(input('Wpisz kwotę: '))
-                        self.stan_konta += saldo
-                        print(f'Dodano {saldo} $ do konta')
-                        akcja = f'Dodano {saldo} $ do konta'
-                        self.historia_akcji.append(akcja)
-                        break
-                    elif zapytanie_o_saldo == 2 :
-                        saldo = int(input('Wpisz kwotę: '))
-                        self.stan_konta -= saldo
-                        print(f'Odjęto {saldo} $ z konta')
-                        akcja = f'Odjęto {saldo} $ z konta'
-                        self.historia_akcji.append(akcja)
-                        break
-                    else :
-                        print('Podano nieprawidłową liczbę')
-
-        # sprzedaz, ktora dodaje kwote wpisana przez uzytkownika do salda i odejmuje dane produkty z magazynu
-            elif zapytanie == 'sprzedaz' :
-                nazwa_produktu = input('Podaj jaki produkt ma zostać sprzedany: ')
-                if nazwa_produktu not in self.stan_magazynu:
-                    print('Nie ma takiego produktu w magazynie!')
-                else:
-                    cena_produktu = float(input('Podaj cenę: '))
-                    liczba_sztuk = int(input('Podaj ilość: '))
-                    laczna_cena = cena_produktu * liczba_sztuk
-                    produkt_do_sprzedazy = self.stan_magazynu[nazwa_produktu]['ilość']
-                    if produkt_do_sprzedazy < liczba_sztuk:
-                        print('Nie ma takiej ilości!')
-                    else:
-                        produkt_do_sprzedazy -= liczba_sztuk
-                        self.stan_konta += laczna_cena
-                        self.stan_magazynu[nazwa_produktu]['ilość'] -= liczba_sztuk
-                        print(f'Sprzedano {nazwa_produktu} w ilości {liczba_sztuk} za {laczna_cena} $')
-                        akcja = f'Sprzedano {nazwa_produktu} w ilości {liczba_sztuk} za {laczna_cena} $'
-                        self.historia_akcji.append(akcja)
-
-        # zakup, ktory odejmuje kwote z konta i dodaje produkty do magazynu
-            elif zapytanie == 'zakup' :
-                nazwa_produktu = input('Podaj jaki produkt ma zostać zakupiony: ')
-                if nazwa_produktu not in self.stan_magazynu:
-                    cena_produktu = float(input('Podaj cenę produktu: '))
-                    liczba_sztuk = int(input('Podaj liczbę zakupionych sztuk: '))
-                    laczna_cena = cena_produktu * liczba_sztuk
-                    if laczna_cena > self.stan_konta :
-                        print('Brakuje pieniędzy na zakup')
-                    elif laczna_cena < self.stan_konta:
-                        self.stan_magazynu[nazwa_produktu] = {'ilość': liczba_sztuk, 'cena': cena_produktu}
-                        self.stan_konta -= laczna_cena
-                        print(f'Zakupiono {nazwa_produktu} w ilości {liczba_sztuk} za {laczna_cena} $')
-                        akcja = f'Zakupiono {nazwa_produktu} w ilości {liczba_sztuk} za {laczna_cena} $'
-                        self.historia_akcji.append(akcja)
-                else:
-                    print('Taki produkt znajduje się już na magazynie')
-
-        # podaje stan konta w $
-            elif zapytanie == 'konto' :
-                print(f'Stan konta to :{self.stan_konta} $')
-
-        # wyswietla wszystkie produkty ich ilosc i cene jakie sa w magazynie
-            elif zapytanie == 'lista':
-                print('Lista produktów w magazynie:')
-                for k, v in self.stan_magazynu.items():
-                    print(f'{k} : {v}')
-
-        # wyswietla tylko jeden produkt podany przez uzytkownika
-            elif zapytanie == 'magazyn':
-                pytanie = input('Zapas jakiego produktu chcesz zobaczyć?: ')
-                if pytanie not in self.stan_magazynu:
-                    print('Nie ma takiego produktu w magazynie!')
-                else:
-                   print(f'{pytanie} : {self.stan_magazynu.get(pytanie)}')
-
-        # historia dokonanych przez uzytkownika akcji, ktore zapisuja sie na liscie
-            elif zapytanie == 'przeglad' and len(self.historia_akcji) > 0:
-                while True:
-                    while True:
-                        try:
-                            liczba_od = int(input('Podaj początek zakresu: '))
-                            liczba_do = int(input('Podaj koniec zakresu: '))
-                            break
-                        except ValueError :
-                            print(self.historia_akcji)
-                    if liczba_od <= 0 or liczba_do > len(self.historia_akcji) :
-                        print(f'Podałeś liczby spoza zakresu. Oto liczba dotychczasowych akcji : {len(self.historia_akcji)}')
-                    else :
-                        print(self.historia_akcji[liczba_od - 1 :liczba_do])
-                        break
-
-# funkcja odpowiadajaca za zapis do pliku
     def save_to_file(self):
         with open(self.filename, 'w') as f:
             f.write(f'Stan konta&&{self.stan_konta}\n')
@@ -137,6 +51,122 @@ class Manager:
                 f.write(str(v) + '\n')
             for k in self.historia_akcji:
                 f.write(k + '&&\n')
+
+    def balance_request(self):
+        while True:
+            zapytanie_o_saldo = int(input('Wybierz 1 jeżeli chcesz dodać kwotę. Wybierz 2 jeżeli chcesz odjąć kwotę: '))
+            if zapytanie_o_saldo == 1:
+                saldo = float(input('Wpisz kwotę: '))
+                self.stan_konta += saldo
+                print(f'Dodano {saldo} $ do konta')
+                akcja = f'Dodano {saldo} $ do konta'
+                self.historia_akcji.append(akcja)
+                break
+            elif zapytanie_o_saldo == 2:
+                saldo = int(input('Wpisz kwotę: '))
+                self.stan_konta -= saldo
+                print(f'Odjęto {saldo} $ z konta')
+                akcja = f'Odjęto {saldo} $ z konta'
+                self.historia_akcji.append(akcja)
+                break
+            else:
+                print('Podano nieprawidłową liczbę')
+
+    def to_sale(self):
+        nazwa_produktu = input('Podaj jaki produkt ma zostać sprzedany: ')
+        if nazwa_produktu not in self.stan_magazynu:
+            print('Nie ma takiego produktu w magazynie!')
+        else:
+            cena_produktu = float(input('Podaj cenę: '))
+            liczba_sztuk = int(input('Podaj ilość: '))
+            laczna_cena = cena_produktu * liczba_sztuk
+            produkt_do_sprzedazy = self.stan_magazynu[nazwa_produktu]['ilość']
+            if produkt_do_sprzedazy < liczba_sztuk:
+                print('Nie ma takiej ilości!')
+            else:
+                produkt_do_sprzedazy -= liczba_sztuk
+                self.stan_konta += laczna_cena
+                self.stan_magazynu[nazwa_produktu]['ilość'] -= liczba_sztuk
+                print(f'Sprzedano {nazwa_produktu} w ilości {liczba_sztuk} za {laczna_cena} $')
+                akcja = f'Sprzedano {nazwa_produktu} w ilości {liczba_sztuk} za {laczna_cena} $'
+                self.historia_akcji.append(akcja)
+
+    def to_purchase(self):
+        nazwa_produktu = input('Podaj jaki produkt ma zostać zakupiony: ')
+        if nazwa_produktu not in self.stan_magazynu:
+            cena_produktu = float(input('Podaj cenę produktu: '))
+            liczba_sztuk = int(input('Podaj liczbę zakupionych sztuk: '))
+            laczna_cena = cena_produktu * liczba_sztuk
+            if laczna_cena > self.stan_konta:
+                print('Brakuje pieniędzy na zakup')
+            elif laczna_cena < self.stan_konta:
+                self.stan_magazynu[nazwa_produktu] = {'ilość': liczba_sztuk, 'cena': cena_produktu}
+                self.stan_konta -= laczna_cena
+                print(f'Zakupiono {nazwa_produktu} w ilości {liczba_sztuk} za {laczna_cena} $')
+                akcja = f'Zakupiono {nazwa_produktu} w ilości {liczba_sztuk} za {laczna_cena} $'
+                self.historia_akcji.append(akcja)
+        else:
+            print('Taki produkt znajduje się już na magazynie')
+
+    def show_account_balance(self):
+        return f'Stan konta to :{self.stan_konta} $'
+
+    def show_list_of_products(self):
+        print('Lista produktów w magazynie:')
+        for k, v in self.stan_magazynu.items():
+                return f'{k} : {v}'
+
+    def show_product(self):
+        pytanie = input('Zapas jakiego produktu chcesz zobaczyć?: ')
+        if pytanie not in self.stan_magazynu:
+            print('Nie ma takiego produktu w magazynie!')
+        else:
+            return f'{pytanie} : {self.stan_magazynu.get(pytanie)}'
+
+    def show_action_history(self):
+        while True:
+            while True:
+                try:
+                    liczba_od = int(input('Podaj początek zakresu: '))
+                    liczba_do = int(input('Podaj koniec zakresu: '))
+                    break
+                except ValueError:
+                    print(self.historia_akcji)
+            if liczba_od <= 0 or liczba_do > len(self.historia_akcji):
+                print(f'Podałeś liczby spoza zakresu. Oto liczba dotychczasowych akcji : {len(self.historia_akcji)}')
+            else:
+                print(self.historia_akcji[liczba_od - 1:liczba_do])
+                break
+
+    def (self, zapytanie):
+        # jezeli podanej wartosci nie ma na liscie warunkow program pyta uzytkownika jeszcze raz co chce zrobic
+            if zapytanie not in self.warunki :
+                print('Wpisałeś nieprawidłową wartość.Spróbuj jeszcze raz!')
+
+# dodanie i odjecie przez uzytkownika kwoty z konta
+            elif zapytanie == 'saldo':
+
+# sprzedaz, ktora dodaje kwote wpisana przez uzytkownika do salda i odejmuje dane produkty z magazynu
+            elif zapytanie == 'sprzedaz' :
+
+# zakup, ktory odejmuje kwote z konta i dodaje produkty do magazynu
+            elif zapytanie == 'zakup' :
+
+# podaje stan konta w $
+            elif zapytanie == 'konto' :
+
+# wyswietla wszystkie produkty ich ilosc i cene jakie sa w magazynie
+            elif zapytanie == 'lista':
+
+# wyswietla tylko jeden produkt podany przez uzytkownika
+            elif zapytanie == 'magazyn':
+
+ # historia dokonanych przez uzytkownika akcji, ktore zapisuja sie na liscie
+            elif zapytanie == 'przeglad' and len(self.historia_akcji) > 0:
+
+
+
+
 
 
 # wlasciwa czesc programu
