@@ -9,17 +9,20 @@ class Manager:
         self.filename = 'history.txt'
         self.actions = {}
 
+# metoda-dekorator
     def assign(self, name):
         def decorate(cb):
             self.actions[name] = cb
         return decorate
 
+# metoda wywolujaca funkcje na podstawie nazwy
     def execute(self, name):
         if name not in self.actions:
             print('Błąd')
         else:
             self.actions[name](self)
 
+# metoda wczytujaca wartosci do obiektu
     def load_data(self):
         with open(self.filename, 'r') as f:
             for line in f:
@@ -33,6 +36,7 @@ class Manager:
                     line = line.strip().replace('&&', '')
                     self.historia_akcji.append(line)
 
+# metoda zapisujaca wartosci obiektu do pliku tekstowego
     def save_to_file(self):
         with open(self.filename, 'w') as f:
             f.write(f'Stan konta&&{self.stan_konta}\n')
@@ -43,11 +47,11 @@ class Manager:
             for k in self.historia_akcji:
                 f.write(k + '&&\n')
 
-
+# utworzenie instacji klasy Manager, wczytanie historii i wartosci z pliku
 manager = Manager()
 manager.load_data()
 
-
+# funkcja dodajaca i odejmujaca kwote z konta
 @manager.assign('saldo')
 def balance_request(manager):
     while True:
@@ -81,7 +85,7 @@ def balance_request(manager):
         else:
             print('Podano nieprawidłową liczbę')
 
-
+# funkcja odpowiadajaca za sprzedaz z magazynu
 @manager.assign('sprzedaz')
 def to_sale(manager):
     nazwa_produktu = input('Podaj jaki produkt ma zostać sprzedany: ')
@@ -102,7 +106,7 @@ def to_sale(manager):
             akcja = f'Sprzedano {nazwa_produktu} w ilości {liczba_sztuk} za {laczna_cena} $'
             manager.historia_akcji.append(akcja)
 
-
+# funkcja odpowiadajaca za zakup produktow na magazyn
 @manager.assign('zakup')
 def to_purchase(manager):
     nazwa_produktu = input('Podaj jaki produkt ma zostać zakupiony: ')
@@ -121,19 +125,19 @@ def to_purchase(manager):
     else:
         print('Taki produkt znajduje się już na magazynie')
 
-
+# funkcja ktora sprawdza stan konta
 @manager.assign('konto')
 def show_account_balance(manager):
     print(f'Stan konta to :{manager.stan_konta} $')
 
-
+# funkcja wyswietlajaca liste produktow na magazynie
 @manager.assign('lista')
 def show_list_of_products(manager):
     print('Lista produktów w magazynie:')
     for k, v in manager.stan_magazynu.items():
         print(f'{k} : {v}')
 
-
+# funkcja, ktora po wywolaniu sprawdza czy i jezeli jest ilosc wpisanego produktu na stanie
 @manager.assign('magazyn')
 def show_product(manager):
     pytanie = input('Zapas jakiego produktu chcesz zobaczyć?: ')
@@ -142,7 +146,7 @@ def show_product(manager):
     else:
         print(f'{pytanie} : {manager.stan_magazynu.get(pytanie)}')
 
-
+# funkcja, ktora odpowiada za przeglad historii zmian
 @manager.assign('przeglad')
 def show_action_history(manager):
     while True:
